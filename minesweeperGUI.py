@@ -1,6 +1,6 @@
 import random
 import eel
-
+from collections import deque
 
 class boardSpot(object):
     value = 0
@@ -91,6 +91,33 @@ class boardClass(object):
     def isWinner(self):
         return self.selectableSpots == 0
 
+    def solveBoard(self, x, y):
+        queue = deque([(x, y)])
+        while queue:
+            x, y = queue.popleft()
+            if not self.board[x][y].selected and self.board[x][y].value != -1:
+                self.board[x][y].selected = True
+                if self.board[x][y].value == 0:
+                    for i in range(x-1, x+2):
+                        for j in range(y-1, y+2):
+                            if 0 <= i < self.boardSize and 0 <= j < self.boardSize and not self.board[i][j].selected:
+                                queue.append((i, j))
+
+        return str(self)
+
+    def getFirstMove(self):
+        x, y = random.randint(0, self.boardSize-1), random.randint(0, self.boardSize-1)
+        while self.board[x][y].selected or self.board[x][y].value == -1:
+            x, y = random.randint(0, self.boardSize-1), random.randint(0, self.boardSize-1)
+        return str(x) + "-" + str(y)
+
+    def getRemainingCells(self):
+        count = 0
+        for i in range(self.boardSize):
+            for j in range(self.boardSize):
+                if not self.board[i][j].selected and self.board[i][j].value != -1:
+                    count += 1
+        return count
 
 #### For UI ####
 eel.init('.//UI')  # path of the webpage folder
@@ -125,7 +152,17 @@ def makeBoard(boardSize, numMines):
     global BOARD
     del BOARD
     BOARD = boardClass(boardSize, numMines)
+@eel.expose
+def solveBoard(x, y):
+    return str(BOARD.solveBoard(x, y))
 
+@eel.expose
+def getFirstMove():
+    return BOARD.getFirstMove()
+
+@eel.expose
+def getRemainingCells():
+    return BOARD.getRemainingCells()
 
 web_app_options = {
     "mode": "chrome",

@@ -21,6 +21,7 @@
   --btnHover: #353535;
   --scrollColor: #fbaccc;
   --creditHover: #f1d1d0;
+  --visitedColor: #b5ff7d;
 }
 .green {
   --background: #00ad7c;
@@ -337,4 +338,10 @@ h4 {
 }
 .brownT:hover {
   background-color: #f3f5dd;
+}
+.cell.processing {
+  background-color: yellow;
+}
+.visited {
+  background-color: var(--visitedColor);
 }
