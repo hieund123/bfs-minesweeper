@@ -123,21 +123,7 @@ async function printBoard(element, event) {
     }
   }
 }
-async function solveBoard() {
-  while (true) {
-    const firstMove = await eel.getFirstMove()();
-    const [x, y] = firstMove.split("-").map(Number);
-    const solution = await eel.solveBoard(x, y)();
-    updateList(solution);
 
-    const remainingCells = await eel.getRemainingCells()();
-    if (remainingCells === 0) {
-      break;
-    }
-
-    await new Promise(resolve => setTimeout(resolve, 1000)); // Add a delay between solves
-  }
-}
 // eel.expose(showTheBoard);
 // function showTheBoard(string) {}
 

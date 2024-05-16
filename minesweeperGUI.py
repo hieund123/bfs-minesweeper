@@ -65,25 +65,27 @@ class boardClass(object):
         if x+1 < self.boardSize and not self.board[x+1][y].mine:
             self.board[x+1][y].value += 1
 
-    def makeMove(self, x, y):
+    def makeMoveBFS(self, x, y):
         self.board[x][y].selected = True
         self.selectableSpots -= 1
         if self.board[x][y].value == -1:
             return False
+        
         if self.board[x][y].value == 0:
-            for i in range(x-1, x+2):
-                if i >= 0 and i < self.boardSize:
-                    if y-1 >= 0 and not self.board[i][y-1].selected:
-                        self.makeMove(i, y-1)
-                    if y+1 < self.boardSize and not self.board[i][y+1].selected:
-                        self.makeMove(i, y+1)
-            if x-1 >= 0 and not self.board[x-1][y].selected:
-                self.makeMove(x-1, y)
-            if x+1 < self.boardSize and not self.board[x+1][y].selected:
-                self.makeMove(x+1, y)
-            return True
-        else:
-            return True
+            queue = deque([(x, y)])
+
+            while queue:
+                curr_x, curr_y = queue.popleft()
+
+                for i in range(curr_x-1, curr_x+2):
+                    for j in range(curr_y-1, curr_y+2):
+                        if (i >= 0 and i < self.boardSize) and (j >= 0 and j < self.boardSize) and not self.board[i][j].selected:
+                            self.board[i][j].selected = True
+                            self.selectableSpots -= 1
+                            if self.board[i][j].value == 0:
+                                queue.append((i, j))
+        
+        return True
 
     def hitMine(self, x, y):
         return self.board[x][y].value == -1
@@ -91,33 +93,6 @@ class boardClass(object):
     def isWinner(self):
         return self.selectableSpots == 0
 
-    def solveBoard(self, x, y):
-        queue = deque([(x, y)])
-        while queue:
-            x, y = queue.popleft()
-            if not self.board[x][y].selected and self.board[x][y].value != -1:
-                self.board[x][y].selected = True
-                if self.board[x][y].value == 0:
-                    for i in range(x-1, x+2):
-                        for j in range(y-1, y+2):
-                            if 0 <= i < self.boardSize and 0 <= j < self.boardSize and not self.board[i][j].selected:
-                                queue.append((i, j))
-
-        return str(self)
-
-    def getFirstMove(self):
-        x, y = random.randint(0, self.boardSize-1), random.randint(0, self.boardSize-1)
-        while self.board[x][y].selected or self.board[x][y].value == -1:
-            x, y = random.randint(0, self.boardSize-1), random.randint(0, self.boardSize-1)
-        return str(x) + "-" + str(y)
-
-    def getRemainingCells(self):
-        count = 0
-        for i in range(self.boardSize):
-            for j in range(self.boardSize):
-                if not self.board[i][j].selected and self.board[i][j].value != -1:
-                    count += 1
-        return count
 
 #### For UI ####
 eel.init('.//UI')  # path of the webpage folder
@@ -134,7 +109,7 @@ def clickedOnTheCell(x, y):
     global GAME_OVER, WINNER
     GO_IN = not GO_IN
     if GO_IN:
-        BOARD.makeMove(x, y)
+        BOARD.makeMoveBFS(x, y)
         GAME_OVER = BOARD.hitMine(x, y)
         if BOARD.isWinner() and GAME_OVER == False:
             GAME_OVER = True
@@ -152,17 +127,7 @@ def makeBoard(boardSize, numMines):
     global BOARD
     del BOARD
     BOARD = boardClass(boardSize, numMines)
-@eel.expose
-def solveBoard(x, y):
-    return str(BOARD.solveBoard(x, y))
 
-@eel.expose
-def getFirstMove():
-    return BOARD.getFirstMove()
-
-@eel.expose
-def getRemainingCells():
-    return BOARD.getRemainingCells()
 
 web_app_options = {
     "mode": "chrome",
